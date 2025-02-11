@@ -24,7 +24,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-// TODO: RUN TEST!
 func TestMemoryCopy(t *testing.T) {
 	// Test cases from https://eips.ethereum.org/EIPS/eip-5656#test-cases
 	for i, tc := range []struct {
