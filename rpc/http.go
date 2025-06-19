@@ -191,10 +191,21 @@ func (c *Client) sendBatchHTTP(ctx context.Context, op *requestOp, msgs []*jsonr
 	if err != nil {
 		return err
 	}
-	defer respBody.Close()
+	respBodyBytes, err := io.ReadAll(respBody)
+	if err != nil {
+		return err
+	}
+	respBody.Close()
 
 	var respmsgs []*jsonrpcMessage
-	if err := json.NewDecoder(respBody).Decode(&respmsgs); err != nil {
+	if err := json.Unmarshal(respBodyBytes, &respmsgs); err != nil {
+		var singleError jsonrpcMessage
+		if err := json.Unmarshal(respBodyBytes, &singleError); err != nil {
+			return err
+		}
+		if singleError.Error != nil {
+			return fmt.Errorf("cannot decode batch response: %v", singleError.Error)
+		}
 		return err
 	}
 	op.resp <- respmsgs
