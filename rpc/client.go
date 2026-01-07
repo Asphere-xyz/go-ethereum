@@ -25,6 +25,7 @@ import (
 	"os"
 	"reflect"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -544,6 +545,12 @@ func (c *Client) newMessage(method string, paramsIn ...interface{}) (*jsonrpcMes
 	msg := &jsonrpcMessage{Version: vsn, ID: c.nextID(), Method: method}
 	if paramsIn != nil { // prevent sending "params":null
 		var err error
+		if len(paramsIn) == 1 && reflect.TypeOf(paramsIn[0]).Kind() == reflect.Map && !strings.HasPrefix(method, "eth_") {
+			if msg.Params, err = json.Marshal(paramsIn[0]); err != nil {
+				return nil, err
+			}
+			return msg, nil
+		}
 		if msg.Params, err = json.Marshal(paramsIn); err != nil {
 			return nil, err
 		}
